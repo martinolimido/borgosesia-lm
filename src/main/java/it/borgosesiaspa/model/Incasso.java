@@ -11,6 +11,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import it.borgosesiaspa.shared.util.BaseEntity;
 
 @Entity
 @Table(indexes = {

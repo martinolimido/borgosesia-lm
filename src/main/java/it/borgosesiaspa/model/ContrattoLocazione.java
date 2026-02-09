@@ -15,6 +15,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Table;
 import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
+import it.borgosesiaspa.shared.util.BaseEntity;
 
 @Entity
 @Table(indexes = {
