@@ -1,0 +1,24 @@
+spring:
+  profiles:
+    active: dev
+  application:
+    name: leasemanagement
+  datasource:
+    url: jdbc:mysql://localhost:3306/borgosesia_lm
+    username: root
+    password: m194asto
+  jpa:
+    hibernate:
+      ddl-auto: update
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+  jwt:
+    secret: 8rD8JdO2f94eK3lMfK8xT4rB2mX5nYqE
+remote:
+  auth:
+    url: http://localhost:51730/Apps/WebObjects/borgosesia.woa/wa/UserAction/authenticate
+bgs:
+  default: 
+    repository: /var/www/bgs.repository
