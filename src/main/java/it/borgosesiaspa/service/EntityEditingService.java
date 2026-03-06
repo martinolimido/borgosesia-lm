@@ -81,6 +81,11 @@ public class EntityEditingService {
     }
 
     @Transactional(readOnly = true)
+    public ContrattoLocazioneEditDto getContrattoLocazioneByCodice(String codice) {
+        return toDto(findContrattoLocazioneByCodice(codice));
+    }
+
+    @Transactional(readOnly = true)
     public List<PianoCanoneEditDto> getContrattoLocazionePianiCanone(Long idContrattoLocazione) {
         try {
             List<PianoCanone> entities = findContrattoLocazionePianiCanone(idContrattoLocazione);
@@ -424,6 +429,15 @@ public class EntityEditingService {
                 .orElseThrow(() -> notFound("ContrattoLocazione", id));
     }
 
+    private ContrattoLocazione findContrattoLocazioneByCodice(String codice) {
+        if (codice == null) {
+            throw badRequest("Il codice del ContrattoLocazione non può essere null");
+        }
+
+        return contrattoLocazioneRepository.findByCodiceContratto(codice)
+                .orElseThrow(() -> notFound("ContrattoLocazione", codice));
+    }
+
     private List<PianoCanone> findContrattoLocazionePianiCanone(Long id) {
         List<PianoCanone> pianiCanone = pianoCanoneRepository.findByContrattoLocazioneId(id);
         if (pianiCanone.isEmpty()) {
@@ -452,7 +466,7 @@ public class EntityEditingService {
                 .orElseThrow(() -> notFound("PianoCanone", id));
     }
 
-    private ResponseStatusException notFound(String entityName, Long id) {
+    private ResponseStatusException notFound(String entityName, Object id) {
         return new ResponseStatusException(HttpStatus.NOT_FOUND, entityName + " non trovato con id=" + id);
     }
 

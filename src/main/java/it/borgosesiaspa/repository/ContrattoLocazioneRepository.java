@@ -7,5 +7,6 @@ import it.borgosesiaspa.model.ContrattoLocazione;
 
 @Repository
 public interface ContrattoLocazioneRepository extends JpaRepository<ContrattoLocazione, Long> {
+    java.util.Optional<ContrattoLocazione> findByCodiceContratto(String codiceContratto);
 
 }

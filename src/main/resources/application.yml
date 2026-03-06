@@ -20,7 +20,7 @@ spring:
     secret: 8rD8JdO2f94eK3lMfK8xT4rB2mX5nYqE
 remote:
   auth:
-    url: http://localhost:51730/Apps/WebObjects/borgosesia.woa/wa/UserAction/authenticate
+    url: http://localhost:52730/Apps/WebObjects/borgosesia.woa/wa/UserAction/authenticate
 bgs:
   default: 
     repository: /var/www/bgs.repository

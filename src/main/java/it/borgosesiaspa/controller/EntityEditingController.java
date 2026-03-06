@@ -28,7 +28,6 @@ import it.borgosesiaspa.dto.edit.IncassoEditDto;
 import it.borgosesiaspa.dto.edit.MorositaEditDto;
 import it.borgosesiaspa.dto.edit.PianoCanoneEditDto;
 import it.borgosesiaspa.model.enums.StatoCanone;
-import it.borgosesiaspa.model.enums.StatoPianoCanone;
 import it.borgosesiaspa.service.EntityEditingService;
 
 @RestController
@@ -76,6 +75,21 @@ public class EntityEditingController {
         })
         public ResponseEntity<ContrattoLocazioneEditDto> getContrattoLocazione(@PathVariable Long id) {
                 return ResponseEntity.ok(entityEditingService.getContrattoLocazione(id));
+        }
+
+        @GetMapping("/contratto-per-codice")
+        @Operation(summary = "Dettaglio contratto", description = "Restituisce un singolo contratto di locazione per codice.", security = @SecurityRequirement(name = "BearerAuth"))
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Contratto recuperato correttamente"),
+                        @ApiResponse(responseCode = "404", description = "Contratto non trovato"),
+                        @ApiResponse(responseCode = "401", description = "Non autorizzato")
+        })
+        public ResponseEntity<List<ContrattoLocazioneEditDto>> getContrattoLocazioneByCodice(@RequestParam String codice) {
+                try {
+                        return ResponseEntity.ok(List.of(entityEditingService.getContrattoLocazioneByCodice(codice)));
+                } catch (Exception e) {
+                        return ResponseEntity.ok(List.of());
+                }
         }
 
         @GetMapping("/contratti/{id}/piani-canone")
