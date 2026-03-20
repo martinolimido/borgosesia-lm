@@ -5,6 +5,7 @@ Backend Spring Boot per la gestione dei contratti di locazione di Borgosesia. In
 
 ## Dominio coperto
 - `ContrattoLocazione`
+- `ContrattoLocazioneUnita`
 - `Canone`
 - `Incasso`
 - `Morosita`
