@@ -4,7 +4,7 @@ spring:
     username: root
     password: m194asto
 server:
-  port: 8290
+  port: 8281
 logging:
   level:
     root: INFO

@@ -2,6 +2,8 @@ package it.borgosesiaspa.dto.edit;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import it.borgosesiaspa.model.enums.ContrattoStato;
 import it.borgosesiaspa.model.enums.DecorrenzaISTAT;
@@ -12,15 +14,50 @@ public class ContrattoLocazioneEditDto {
     private Long id;
     private String descrizione;
     private Integer idImmobile;
-    private Integer idUnita;
     private Integer idConduttore;
+    private List<ContrattoLocazioneUnitaEditDto> unita = new ArrayList<>();
     private String codiceContratto;
     private LocalDate dataInizio;
     private LocalDate dataFine;
     private LocalDate dataPrimaScadenza;
     private Integer durataMesi;
     private Periodicita periodicita;
+    private LocalDate dataProssimaRivalutazioneIstat;
+    private Boolean canoneVariabile, azioneLegaleInCorso, speseAccessorieCaricoConduttore;
     private Boolean rivalutazioneIstat;
+
+    public Boolean getSpeseAccessorieCaricoConduttore() {
+        return speseAccessorieCaricoConduttore;
+    }
+
+    public void setSpeseAccessorieCaricoConduttore(Boolean speseAccessorieCaricoConduttore) {
+        this.speseAccessorieCaricoConduttore = speseAccessorieCaricoConduttore;
+    }
+
+    public LocalDate getDataProssimaRivalutazioneIstat() {
+        return dataProssimaRivalutazioneIstat;
+    }
+
+    public void setDataProssimaRivalutazioneIstat(LocalDate dataProssimaRivalutazioneIstat) {
+        this.dataProssimaRivalutazioneIstat = dataProssimaRivalutazioneIstat;
+    }
+
+    public Boolean getCanoneVariabile() {
+        return canoneVariabile;
+    }
+
+    public void setCanoneVariabile(Boolean canoneVariabile) {
+        this.canoneVariabile = canoneVariabile;
+    }
+
+    public Boolean getAzioneLegaleInCorso() {
+        return azioneLegaleInCorso;
+    }
+
+    public void setAzioneLegaleInCorso(Boolean azioneLegaleInCorso) {
+        this.azioneLegaleInCorso = azioneLegaleInCorso;
+    }
+
     private BigDecimal percentualeIstat;
     private BigDecimal depositoCauzionale;
     private BigDecimal canoneBase;
@@ -98,20 +135,20 @@ public class ContrattoLocazioneEditDto {
         this.idImmobile = idImmobile;
     }
 
-    public Integer getIdUnita() {
-        return idUnita;
-    }
-
-    public void setIdUnita(Integer idUnita) {
-        this.idUnita = idUnita;
-    }
-
     public Integer getIdConduttore() {
         return idConduttore;
     }
 
     public void setIdConduttore(Integer idConduttore) {
         this.idConduttore = idConduttore;
+    }
+
+    public List<ContrattoLocazioneUnitaEditDto> getUnita() {
+        return unita;
+    }
+
+    public void setUnita(List<ContrattoLocazioneUnitaEditDto> unita) {
+        this.unita = unita != null ? new ArrayList<>(unita) : new ArrayList<>();
     }
 
     public String getCodiceContratto() {

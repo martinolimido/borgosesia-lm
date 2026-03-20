@@ -69,6 +69,12 @@ public class Morosita extends BaseEntity {
     public void setGiorniRitardo(Integer giorniRitardo) {
         this.giorniRitardo = giorniRitardo;
     }
+    public LocalDate getDataPrevisioneIncasso() {
+        return dataPrevisioneIncasso;
+    }
+    public void setDataPrevisioneIncasso(LocalDate dataPrevisioneIncasso) {
+        this.dataPrevisioneIncasso = dataPrevisioneIncasso;
+    }
     public BigDecimal getImportoResiduo() {
         return importoResiduo;
     }
@@ -103,6 +109,8 @@ public class Morosita extends BaseEntity {
     private LocalDate dataInizio;
     @Column
     private Integer giorniRitardo;
+    @Column
+    private LocalDate dataPrevisioneIncasso;
     @Column(precision = 10, scale = 2)
     private BigDecimal importoResiduo;
     @Column

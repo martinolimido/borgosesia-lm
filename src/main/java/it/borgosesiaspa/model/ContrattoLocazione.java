@@ -2,6 +2,7 @@ package it.borgosesiaspa.model;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -22,8 +23,7 @@ import it.borgosesiaspa.shared.util.BaseEntity;
 @Entity
 @Table(indexes = {
         @Index(name = "idx_idImmobile", columnList = "idImmobile"),
-        @Index(name = "idx_idConduttore", columnList = "idConduttore"),
-        @Index(name = "idx_idUnita", columnList = "idUnita")
+        @Index(name = "idx_idConduttore", columnList = "idConduttore")
 })
 public class ContrattoLocazione extends BaseEntity {
     @Column
@@ -33,8 +33,6 @@ public class ContrattoLocazione extends BaseEntity {
     // gestiamo direttamente, quindi manteniamo solo gli ID
     @Column
     private Integer idImmobile;
-    @Column
-    private Integer idUnita;
     @Column
     private Integer idConduttore;
 
@@ -57,10 +55,52 @@ public class ContrattoLocazione extends BaseEntity {
         this.speseAccessorieRiaddebitabili = speseAccessorieRiaddebitabili;
     }
 
+    private Boolean speseAccessorieCaricoConduttore;
+
+    public Boolean getSpeseAccessorieCaricoConduttore() {
+        return speseAccessorieCaricoConduttore;
+    }
+
+    public void setSpeseAccessorieCaricoConduttore(Boolean speseAccessorieCaricoConduttore) {
+        this.speseAccessorieCaricoConduttore = speseAccessorieCaricoConduttore;
+    }
+
     @Column
     private Periodicita periodicita;
     @Column
     private Boolean rivalutazioneIstat;
+    @Column
+    private LocalDate dataProssimaRivalutazioneIstat;
+
+    public LocalDate getDataProssimaRivalutazioneIstat() {
+        return dataProssimaRivalutazioneIstat;
+    }
+
+    public void setDataProssimaRivalutazioneIstat(LocalDate dataProssimaRivalutazioneIstat) {
+        this.dataProssimaRivalutazioneIstat = dataProssimaRivalutazioneIstat;
+    }
+
+    public Boolean getAzioneLegaleInCorso() {
+        return azioneLegaleInCorso;
+    }
+
+    public void setAzioneLegaleInCorso(Boolean azioneLegaleInCorso) {
+        this.azioneLegaleInCorso = azioneLegaleInCorso;
+    }
+
+    @Column
+    private Boolean azioneLegaleInCorso;
+    @Column
+    private Boolean canoneVariabile;
+
+    public Boolean getCanoneVariabile() {
+        return canoneVariabile;
+    }
+
+    public void setCanoneVariabile(Boolean canoneVariabile) {
+        this.canoneVariabile = canoneVariabile;
+    }
+
     @Column
     private DecorrenzaISTAT decorrenzaIstat;
 
@@ -132,14 +172,6 @@ public class ContrattoLocazione extends BaseEntity {
 
     public void setIdImmobile(Integer idImmobile) {
         this.idImmobile = idImmobile;
-    }
-
-    public Integer getIdUnita() {
-        return idUnita;
-    }
-
-    public void setIdUnita(Integer idUnita) {
-        this.idUnita = idUnita;
     }
 
     public Integer getIdConduttore() {
@@ -294,6 +326,25 @@ public class ContrattoLocazione extends BaseEntity {
         this.eventiContratto = eventiContratto;
     }
 
+    public List<ContrattoLocazioneUnita> getUnita() {
+        return unita;
+    }
+
+    public void setUnita(List<ContrattoLocazioneUnita> unita) {
+        this.unita.clear();
+        if (unita == null) {
+            return;
+        }
+        for (ContrattoLocazioneUnita contrattoUnita : unita) {
+            addUnita(contrattoUnita);
+        }
+    }
+
+    public void addUnita(ContrattoLocazioneUnita contrattoUnita) {
+        contrattoUnita.setContrattoLocazione(this);
+        unita.add(contrattoUnita);
+    }
+
     @OneToMany(mappedBy = "contrattoLocazione", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Canone> canoni;
@@ -313,5 +364,9 @@ public class ContrattoLocazione extends BaseEntity {
     @OneToMany(mappedBy = "contrattoLocazione", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<EventoContratto> eventiContratto;
+
+    @OneToMany(mappedBy = "contrattoLocazione", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<ContrattoLocazioneUnita> unita = new ArrayList<>();
 
 }

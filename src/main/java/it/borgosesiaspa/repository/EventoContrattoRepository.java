@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface EventoContrattoRepository extends JpaRepository<EventoContratto, Long> {
 
-    List<EventoContratto> findByContrattoLocazioneId(Long contrattoLocazioneId);
+    List<EventoContratto> findByContrattoLocazioneIdOrderByDataEventoDescIdDesc(Long contrattoLocazioneId);
 }

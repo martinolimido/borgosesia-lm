@@ -22,11 +22,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import it.borgosesiaspa.dto.PagedResponse;
 import it.borgosesiaspa.dto.edit.CanoneEditDto;
-import it.borgosesiaspa.dto.edit.CanoneListDto;
+import it.borgosesiaspa.dto.edit.ContrattoCessazioneEditDto;
 import it.borgosesiaspa.dto.edit.ContrattoLocazioneEditDto;
+import it.borgosesiaspa.dto.edit.EventoContrattoEditDto;
 import it.borgosesiaspa.dto.edit.IncassoEditDto;
 import it.borgosesiaspa.dto.edit.MorositaEditDto;
 import it.borgosesiaspa.dto.edit.PianoCanoneEditDto;
+import it.borgosesiaspa.dto.edit.SpesaEditDto;
+import it.borgosesiaspa.dto.read.CanoneReadOnlyDto;
+import it.borgosesiaspa.model.enums.ContrattoStato;
 import it.borgosesiaspa.model.enums.StatoCanone;
 import it.borgosesiaspa.service.EntityEditingService;
 
@@ -48,10 +52,34 @@ public class EntityEditingController {
         })
         public ResponseEntity<PagedResponse<ContrattoLocazioneEditDto>> listContrattiLocazione(
                         @RequestParam(required = false, defaultValue = "0") int page,
-                        @RequestParam(required = false, defaultValue = "50") int size) {
-                System.out.println("Request listContrattiLocazione: page=" + page + ", size=" + size);
+                        @RequestParam(required = false, defaultValue = "50") int size,
+                        @RequestParam(required = false) ContrattoStato stato,
+                        @RequestParam(required = false) LocalDate dataInizioDa,
+                        @RequestParam(required = false) LocalDate dataInizioA,
+                        @RequestParam(required = false) LocalDate dataFineDa,
+                        @RequestParam(required = false) LocalDate dataFineA,
+                        @RequestParam(required = false) Integer idImmobile,
+                        @RequestParam(required = false) Integer idConduttore,
+                        @RequestParam(required = false) Boolean azioneLegaleInCorso,
+                        @RequestParam(required = false) LocalDate dataProssimaRivalutazioneIstatDa,
+                        @RequestParam(required = false) LocalDate dataProssimaRivalutazioneIstatA,
+                        @RequestParam(required = false) String tipologia,
+                        @RequestParam(required = false) String searchText) {
                 return ResponseEntity.ok(new PagedResponse<>(
-                                entityEditingService.listContrattiLocazione(PageRequest.of(page, size))));
+                                entityEditingService.listContrattiLocazione(
+                                                PageRequest.of(page, size),
+                                                stato,
+                                                dataInizioDa,
+                                                dataInizioA,
+                                                dataFineDa,
+                                                dataFineA,
+                                                idImmobile,
+                                                idConduttore,
+                                                azioneLegaleInCorso,
+                                                dataProssimaRivalutazioneIstatDa,
+                                                dataProssimaRivalutazioneIstatA,
+                                                tipologia,
+                                                searchText)));
         }
 
         @PostMapping("/contratti")
@@ -103,6 +131,31 @@ public class EntityEditingController {
                 return ResponseEntity.ok(entityEditingService.getContrattoLocazionePianiCanone(id));
         }
 
+        @GetMapping("/contratti/{id}/eventi")
+        @Operation(summary = "Elenco eventi contratto", description = "Restituisce l'elenco degli eventi per un contratto di locazione.", security = @SecurityRequirement(name = "BearerAuth"))
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Elenco eventi recuperato correttamente"),
+                        @ApiResponse(responseCode = "404", description = "Contratto non trovato"),
+                        @ApiResponse(responseCode = "401", description = "Non autorizzato")
+        })
+        public ResponseEntity<List<EventoContrattoEditDto>> getContrattoLocazioneEventi(@PathVariable Long id) {
+                return ResponseEntity.ok(entityEditingService.getContrattoLocazioneEventi(id));
+        }
+
+        @GetMapping("/contratti/{id}/spese")
+        @Operation(summary = "Elenco spese contratto", description = "Restituisce l'elenco delle spese per un contratto di locazione.", security = @SecurityRequirement(name = "BearerAuth"))
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Elenco spese recuperato correttamente"),
+                        @ApiResponse(responseCode = "401", description = "Non autorizzato")
+        })
+        public ResponseEntity<PagedResponse<SpesaEditDto>> listSpeseContratto(
+                        @PathVariable Long id,
+                        @RequestParam(required = false, defaultValue = "0") int page,
+                        @RequestParam(required = false, defaultValue = "50") int size) {
+                return ResponseEntity.ok(new PagedResponse<>(
+                                entityEditingService.listSpeseContratto(PageRequest.of(page, size), id)));
+        }
+
         @PutMapping("/contratti/{id}")
         @Operation(summary = "Aggiorna contratto", description = "Aggiorna un contratto di locazione esistente.", security = @SecurityRequirement(name = "BearerAuth"))
         @ApiResponses({
@@ -115,6 +168,21 @@ public class EntityEditingController {
                         @PathVariable Long id,
                         @RequestBody ContrattoLocazioneEditDto dto) {
                 return ResponseEntity.ok(entityEditingService.updateContrattoLocazione(id, dto));
+        }
+
+        @PutMapping("/contratti/{id}/cessa")
+        @Operation(summary = "Cessa contratto", description = "Cessa un contratto di locazione, annullando i piani canone attivi.", security = @SecurityRequirement(name = "BearerAuth"))
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Contratto cessato correttamente"),
+                        @ApiResponse(responseCode = "400", description = "Richiesta non valida"),
+                        @ApiResponse(responseCode = "404", description = "Contratto non trovato"),
+                        @ApiResponse(responseCode = "401", description = "Non autorizzato")
+        })
+        public ResponseEntity<ContrattoLocazioneEditDto> cessaContrattoLocazione(
+                        @PathVariable Long id,
+                        @RequestBody ContrattoCessazioneEditDto dto) {
+                String username = SecurityContextHolder.getContext().getAuthentication().getName();
+                return ResponseEntity.ok(entityEditingService.cessaContrattoLocazione(id, dto, username));
         }
 
         @DeleteMapping("/contratti/{id}")
@@ -135,16 +203,18 @@ public class EntityEditingController {
                         @ApiResponse(responseCode = "200", description = "Elenco canoni recuperato correttamente"),
                         @ApiResponse(responseCode = "401", description = "Non autorizzato")
         })
-        public ResponseEntity<PagedResponse<CanoneListDto>> listCanoni(
+        public ResponseEntity<PagedResponse<CanoneReadOnlyDto>> listCanoni(
                         @RequestParam(required = false, defaultValue = "0") int page,
                         @RequestParam(required = false, defaultValue = "50") int size,
                         @RequestParam(required = false) Long contrattoLocazioneId,
+                        @RequestParam(required = false) Integer idImmobile,
+                        @RequestParam(required = false) Integer idUnita,
                         @RequestParam(required = false) Long pianoCanoneId,
                         @RequestParam(required = false) LocalDate scadenzaDa,
                         @RequestParam(required = false) LocalDate scadenzaA,
                         @RequestParam(required = false) List<StatoCanone> statiCanone) {
                 return ResponseEntity.ok(new PagedResponse<>(
-                                entityEditingService.searchCanoni(PageRequest.of(page, size), contrattoLocazioneId, pianoCanoneId, scadenzaDa, scadenzaA, statiCanone)));
+                                entityEditingService.searchCanoni(PageRequest.of(page, size), contrattoLocazioneId, idImmobile, idUnita, pianoCanoneId, scadenzaDa, scadenzaA, statiCanone)));
         }
 
         @PostMapping("/canoni")
@@ -280,6 +350,56 @@ public class EntityEditingController {
                 return ResponseEntity.noContent().build();
         }
 
+        @GetMapping("/spese")
+        @Operation(summary = "Elenca spese", description = "Restituisce l'elenco delle spese accessorie sostenute per i contratti.", security = @SecurityRequirement(name = "BearerAuth"))
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Elenco spese recuperato correttamente"),
+                        @ApiResponse(responseCode = "401", description = "Non autorizzato")
+        })
+        public ResponseEntity<PagedResponse<SpesaEditDto>> listSpese(
+                        @RequestParam(required = false, defaultValue = "0") int page,
+                        @RequestParam(required = false, defaultValue = "50") int size) {
+                return ResponseEntity.ok(new PagedResponse<>(
+                                entityEditingService.listSpese(PageRequest.of(page, size))));
+        }
+
+        @PostMapping("/spese")
+        @Operation(summary = "Crea spesa", description = "Crea una nuova spesa accessoria in capo al contratto.", security = @SecurityRequirement(name = "BearerAuth"))
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Spesa creata correttamente"),
+                        @ApiResponse(responseCode = "400", description = "Richiesta non valida"),
+                        @ApiResponse(responseCode = "401", description = "Non autorizzato")
+        })
+        public ResponseEntity<SpesaEditDto> createSpesa(@RequestBody SpesaEditDto dto) {
+                return ResponseEntity.ok(entityEditingService.createSpesa(dto));
+        }
+
+        @PutMapping("/spese/{id}")
+        @Operation(summary = "Aggiorna spesa", description = "Aggiorna una spesa accessoria esistente.", security = @SecurityRequirement(name = "BearerAuth"))
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Spesa aggiornata correttamente"),
+                        @ApiResponse(responseCode = "400", description = "Richiesta non valida"),
+                        @ApiResponse(responseCode = "404", description = "Spesa non trovata"),
+                        @ApiResponse(responseCode = "401", description = "Non autorizzato")
+        })
+        public ResponseEntity<SpesaEditDto> updateSpesa(
+                        @PathVariable Long id,
+                        @RequestBody SpesaEditDto dto) {
+                return ResponseEntity.ok(entityEditingService.updateSpesa(id, dto));
+        }
+
+        @DeleteMapping("/spese/{id}")
+        @Operation(summary = "Cancella spesa", description = "Cancella una spesa accessoria esistente.", security = @SecurityRequirement(name = "BearerAuth"))
+        @ApiResponses({
+                        @ApiResponse(responseCode = "204", description = "Spesa cancellata correttamente"),
+                        @ApiResponse(responseCode = "404", description = "Spesa non trovata"),
+                        @ApiResponse(responseCode = "401", description = "Non autorizzato")
+        })
+        public ResponseEntity<Void> deleteSpesa(@PathVariable Long id) {
+                entityEditingService.deleteSpesa(id);
+                return ResponseEntity.noContent().build();
+        }
+
         @GetMapping("/morosita")
         @Operation(summary = "Elenca morosita", description = "Restituisce l'elenco delle morosita.", security = @SecurityRequirement(name = "BearerAuth"))
         @ApiResponses({
@@ -329,6 +449,19 @@ public class EntityEditingController {
                 return ResponseEntity.ok(entityEditingService.updateMorosita(id, dto));
         }
 
+        @PostMapping("/morosita/{id}/chiudi")
+        @Operation(summary = "Chiudi morosita", description = "Chiude una morosita esistente.", security = @SecurityRequirement(name = "BearerAuth"))
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Morosita chiusa correttamente"),
+                        @ApiResponse(responseCode = "400", description = "Richiesta non valida"),
+                        @ApiResponse(responseCode = "404", description = "Morosita non trovata"),
+                        @ApiResponse(responseCode = "401", description = "Non autorizzato")
+        })
+        public ResponseEntity<MorositaEditDto> chiudiMorosita(@PathVariable Long id) {
+                String username = SecurityContextHolder.getContext().getAuthentication().getName();
+                return ResponseEntity.ok(entityEditingService.chiudiMorosita(id, username));
+        }
+
         @DeleteMapping("/morosita/{id}")
         @Operation(summary = "Cancella morosita", description = "Cancella una morosita esistente.", security = @SecurityRequirement(name = "BearerAuth"))
         @ApiResponses({
@@ -360,7 +493,7 @@ public class EntityEditingController {
                         @ApiResponse(responseCode = "200", description = "Elenco canoni recuperato correttamente"),
                         @ApiResponse(responseCode = "401", description = "Non autorizzato")
         })
-        public ResponseEntity<PagedResponse<CanoneEditDto>> listCanoniPianoCanone(
+        public ResponseEntity<PagedResponse<CanoneReadOnlyDto>> listCanoniPianoCanone(
                         @PathVariable Long id,
                         @RequestParam(required = false, defaultValue = "0") int page,
                         @RequestParam(required = false, defaultValue = "50") int size) {
@@ -376,7 +509,8 @@ public class EntityEditingController {
                         @ApiResponse(responseCode = "401", description = "Non autorizzato")
         })
         public ResponseEntity<PianoCanoneEditDto> createPianoCanone(@RequestBody PianoCanoneEditDto dto) {
-                return ResponseEntity.ok(entityEditingService.createPianoCanone(dto));
+                String username = SecurityContextHolder.getContext().getAuthentication().getName();
+                return ResponseEntity.ok(entityEditingService.createPianoCanone(dto, username));
         }
 
         @GetMapping("/piani-canone/{id}")
@@ -401,7 +535,8 @@ public class EntityEditingController {
         public ResponseEntity<PianoCanoneEditDto> updatePianoCanone(
                         @PathVariable Long id,
                         @RequestBody PianoCanoneEditDto dto) {
-                return ResponseEntity.ok(entityEditingService.updatePianoCanone(id, dto));
+                String username = SecurityContextHolder.getContext().getAuthentication().getName();
+                return ResponseEntity.ok(entityEditingService.updatePianoCanone(id, dto, username));
         }
 
         @PutMapping("/piani-canone/{id}/annulla")

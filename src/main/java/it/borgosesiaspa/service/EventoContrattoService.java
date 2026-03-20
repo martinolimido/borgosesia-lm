@@ -70,15 +70,46 @@ public class EventoContrattoService {
         createEventoContratto(eventoDto);
     }
 
+    public void chiudiMorosita(Morosita morosita, String username) {
+        BigDecimal importoResiduo = morosita.getImportoResiduo() != null ? morosita.getImportoResiduo() : BigDecimal.ZERO;
+        EventoContrattoEditDto eventoDto = new EventoContrattoEditDto();
+        eventoDto.setContrattoLocazioneId(morosita.getContrattoLocazione().getId());
+        eventoDto.setTipoEvento(EventoTipo.MOROSITA_CHIUSA);
+        eventoDto.setDataEvento(LocalDate.now());
+        eventoDto.setRiferimentoTipo(EventoRiferimento.MOROSITA);
+        eventoDto.setRiferimentoId(morosita.getId());
+        eventoDto.setPayloadJson("{\"importoResiduo\": " + importoResiduo + "}");
+        eventoDto.setNote("Chiusura morosità con importo residuo " + importoResiduo);
+        eventoDto.setCreatedBy(username);
+        createEventoContratto(eventoDto);
+    }
+
     public void cancelPianoCanone(PianoCanone entity, String username) {
+        cancelPianoCanone(entity, LocalDate.now(), username);
+    }
+
+    public void cancelPianoCanone(PianoCanone entity, LocalDate dataEvento, String username) {
         EventoContrattoEditDto eventoDto = new EventoContrattoEditDto();
         eventoDto.setContrattoLocazioneId(entity.getContrattoLocazione().getId());
         eventoDto.setTipoEvento(EventoTipo.VARIAZIONE_CANONE);
-        eventoDto.setDataEvento(LocalDate.now());
+        eventoDto.setDataEvento(dataEvento);
         eventoDto.setRiferimentoTipo(EventoRiferimento.PIANO);
         eventoDto.setRiferimentoId(entity.getId());
         eventoDto.setPayloadJson("{\"importo\": " + entity.getImporto() + "}");
         eventoDto.setNote("Annullamento piano canone e canoni emessi con importo " + entity.getImporto());
+        eventoDto.setCreatedBy(username);
+        createEventoContratto(eventoDto);
+    }
+
+    public void cessaContratto(ContrattoLocazione entity, int pianiAnnullati, String username) {
+        EventoContrattoEditDto eventoDto = new EventoContrattoEditDto();
+        eventoDto.setContrattoLocazioneId(entity.getId());
+        eventoDto.setTipoEvento(EventoTipo.CESSAZIONE);
+        eventoDto.setDataEvento(entity.getDataCessazione());
+        eventoDto.setRiferimentoTipo(EventoRiferimento.CONTRATTO);
+        eventoDto.setRiferimentoId(entity.getId());
+        eventoDto.setPayloadJson("{\"dataCessazione\": \"" + entity.getDataCessazione() + "\", \"pianiAnnullati\": " + pianiAnnullati + "}");
+        eventoDto.setNote("Cessazione contratto con annullamento di " + pianiAnnullati + " piani canone attivi");
         eventoDto.setCreatedBy(username);
         createEventoContratto(eventoDto);
     }

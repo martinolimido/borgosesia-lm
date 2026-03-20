@@ -12,6 +12,7 @@ public class MorositaEditDto {
     private Long canoneId;
     private LocalDate dataInizio;
     private Integer giorniRitardo;
+    private LocalDate dataPrevisioneIncasso;
     private BigDecimal importoResiduo;
     private StatoMorosita stato;
     private LivelloMorosita livello;
@@ -56,6 +57,14 @@ public class MorositaEditDto {
 
     public void setGiorniRitardo(Integer giorniRitardo) {
         this.giorniRitardo = giorniRitardo;
+    }
+
+    public LocalDate getDataPrevisioneIncasso() {
+        return dataPrevisioneIncasso;
+    }
+
+    public void setDataPrevisioneIncasso(LocalDate dataPrevisioneIncasso) {
+        this.dataPrevisioneIncasso = dataPrevisioneIncasso;
     }
 
     public BigDecimal getImportoResiduo() {
