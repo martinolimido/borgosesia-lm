@@ -414,7 +414,16 @@ public class EntityEditingService {
             dataInizio = contratto.getDataInizio();
         }
         log.info("Data inizio " + dataInizio);
-        LocalDate dataFine = entity.getDataFineValidita(); // se non è indicata una data fine validità, consideriamo un periodo molto lungo
+        LocalDate dataFine = entity.getDataFineValidita();
+        if (dataFine == null) {
+            // Piano aperto (tipicamente rinnovo tacito): nessuna data fine contrattuale.
+            // Generiamo i canoni fino a 12 mesi dal riferimento (dataInizio se futura,
+            // altrimenti oggi), così il piano rimane concettualmente indefinito ma i
+            // Canone coprono un orizzonte gestibile. Il task giornaliero potrà prolungare.
+            LocalDate riferimento = dataInizio.isAfter(LocalDate.now()) ? dataInizio : LocalDate.now();
+            dataFine = riferimento.plusMonths(12);
+            log.info("PianoCanone senza dataFineValidita (piano aperto): generazione canoni fino a {}", dataFine);
+        }
         PianoCanone savedPianoCanone = pianoCanoneRepository.save(entity);
         while (dataInizio.isBefore(dataFine)) {
             CanoneEditDto canoneDto = new CanoneEditDto();
@@ -440,7 +449,26 @@ public class EntityEditingService {
 
             Canone canone = new Canone();
             applyCanone(canone, canoneDto);
-            canoneRepository.save(canone);
+            canone = canoneRepository.save(canone);
+
+            if (Boolean.TRUE.equals(dto.getIncassaPregressi())) {
+                LocalDate primoMeseCorrente = LocalDate.now().withDayOfMonth(1);
+                if (canone.getDataScadenza() != null
+                        && canone.getDataScadenza().isBefore(primoMeseCorrente)) {
+                    canone.setImportoIncassato(canone.getImporto());
+                    canone.setStato(StatoCanone.INCASSATO);
+                    canone = canoneRepository.save(canone);
+
+                    Incasso incasso = new Incasso();
+                    incasso.setContrattoLocazione(contratto);
+                    incasso.setCanone(canone);
+                    incasso.setDataIncasso(canone.getDataScadenza()); // puntuale: data scadenza = data incasso
+                    incasso.setImporto(canone.getImporto());
+                    incasso.setNote("Incasso pregresso generato alla creazione del piano canone");
+                    incasso = incassoRepository.save(incasso);
+                    eventoContrattoService.registraIncassoCanone(canone, incasso, username);
+                }
+            }
         }
         eventoContrattoService.createPianoCanone(entity, username);
 

@@ -18,6 +18,21 @@ public class PianoCanoneEditDto {
     private Integer giornoScadenza;
     private TipoCanone tipo;
     private String note;
+    /**
+     * Se true, tutti i canoni generati con dataScadenza anteriore al 1° del mese
+     * corrente vengono marcati INCASSATO con un Incasso alla data di scadenza
+     * (simulazione incasso puntuale). Utile al primo caricamento di un contratto
+     * già in corso.
+     */
+    private Boolean incassaPregressi;
+
+    public Boolean getIncassaPregressi() {
+        return incassaPregressi;
+    }
+
+    public void setIncassaPregressi(Boolean incassaPregressi) {
+        this.incassaPregressi = incassaPregressi;
+    }
 
     public Long getId() {
         return id;

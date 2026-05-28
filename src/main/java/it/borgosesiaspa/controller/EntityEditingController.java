@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -197,10 +198,21 @@ public class EntityEditingController {
                 return ResponseEntity.noContent().build();
         }
 
+        /**
+         * Campi ordinabili per i canoni. Corrisponde alle proprietà JPA di
+         * {@link it.borgosesiaspa.model.Canone} che ha senso esporre come sort key.
+         */
+        private static final java.util.Set<String> CANONE_SORT_FIELDS = java.util.Set.of(
+                        "dataScadenza", "periodoDa", "periodoA", "importo", "importoIncassato", "stato", "id");
+
         @GetMapping("/canoni")
-        @Operation(summary = "Cerca i canoni", description = "Restituisce l'elenco dei canoni.", security = @SecurityRequirement(name = "BearerAuth"))
+        @Operation(summary = "Cerca i canoni", description = """
+                        Restituisce l'elenco dei canoni con paginazione e ordinamento configurabile.
+                        Campi ordinabili: dataScadenza, periodoDa, periodoA, importo, importoIncassato, stato, id.
+                        Default: dataScadenza ASC.""", security = @SecurityRequirement(name = "BearerAuth"))
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "Elenco canoni recuperato correttamente"),
+                        @ApiResponse(responseCode = "400", description = "Campo di ordinamento non valido"),
                         @ApiResponse(responseCode = "401", description = "Non autorizzato")
         })
         public ResponseEntity<PagedResponse<CanoneReadOnlyDto>> listCanoni(
@@ -212,9 +224,23 @@ public class EntityEditingController {
                         @RequestParam(required = false) Long pianoCanoneId,
                         @RequestParam(required = false) LocalDate scadenzaDa,
                         @RequestParam(required = false) LocalDate scadenzaA,
-                        @RequestParam(required = false) List<StatoCanone> statiCanone) {
+                        @RequestParam(required = false) List<StatoCanone> statiCanone,
+                        @RequestParam(required = false, defaultValue = "dataScadenza") String sortBy,
+                        @RequestParam(required = false, defaultValue = "asc") String sortDir) {
+                if (!CANONE_SORT_FIELDS.contains(sortBy)) {
+                        throw new org.springframework.web.server.ResponseStatusException(
+                                        org.springframework.http.HttpStatus.BAD_REQUEST,
+                                        "Campo di ordinamento non valido: '" + sortBy
+                                                        + "'. Valori ammessi: " + CANONE_SORT_FIELDS);
+                }
+                Sort.Direction direction = "desc".equalsIgnoreCase(sortDir)
+                                ? Sort.Direction.DESC
+                                : Sort.Direction.ASC;
+                Sort sort = Sort.by(direction, sortBy);
                 return ResponseEntity.ok(new PagedResponse<>(
-                                entityEditingService.searchCanoni(PageRequest.of(page, size), contrattoLocazioneId, idImmobile, idUnita, pianoCanoneId, scadenzaDa, scadenzaA, statiCanone)));
+                                entityEditingService.searchCanoni(PageRequest.of(page, size, sort),
+                                                contrattoLocazioneId, idImmobile, idUnita, pianoCanoneId,
+                                                scadenzaDa, scadenzaA, statiCanone)));
         }
 
         @PostMapping("/canoni")

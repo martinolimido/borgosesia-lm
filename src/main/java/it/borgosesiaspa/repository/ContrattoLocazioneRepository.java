@@ -1,6 +1,7 @@
 package it.borgosesiaspa.repository;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +14,20 @@ import it.borgosesiaspa.model.enums.ContrattoStato;
 @Repository
 public interface ContrattoLocazioneRepository extends JpaRepository<ContrattoLocazione, Long> {
     java.util.Optional<ContrattoLocazione> findByCodiceContratto(String codiceContratto);
+
+    /**
+     * Restituisce SOLO gli id dei contratti in scope per il task giornaliero
+     * di verifica: tutti gli ATTIVI più i CESSATI con cessazione programmata
+     * in futuro. Lo scheduler poi processa un id alla volta, ognuno in una
+     * propria transazione, per non incorrere in LazyInitializationException
+     * sulle relazioni del contratto.
+     */
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT cl.id FROM ContrattoLocazione cl " +
+                    "WHERE cl.stato = it.borgosesiaspa.model.enums.ContrattoStato.ATTIVO " +
+                    "OR (cl.stato = it.borgosesiaspa.model.enums.ContrattoStato.CESSATO " +
+                    "    AND cl.dataCessazione IS NOT NULL AND cl.dataCessazione > :oggi)")
+    List<Long> findIdContrattiInScopeVerifica(LocalDate oggi);
 
     @org.springframework.data.jpa.repository.Query(
             value = "SELECT cl FROM ContrattoLocazione cl " +
